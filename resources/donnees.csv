@@ -1,12 +1,12 @@
 [vehicules]
 immatriculation,type,etat,kilometrage,extra
 AB-123-CD,Léger,disponible,45000,
-EF-456-GH,Lourd,disponible,80000,12.5
+EF-456-GH,Lourd,assigné,80000,12.5
 IJ-789-KL,Spécial,disponible,55000,Ambulance
 [chauffeurs]
 nom,prenom,permis,disponible
 Dupont,Jean,B-12345,true
-Martin,Marie,C-67890,true
+Martin,Marie,C-67890,false
 [missions]
 id,type,description,date,statut,extra
 M001,Mission courte,Livraison Paris,2024-01-15,en attente,3
