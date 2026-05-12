@@ -2,7 +2,6 @@ package model;
 
 public class VehiculeLeger extends Vehicule implements Assignable, Maintenable {
     private Chauffeur chauffeur;
-    private String dateMaintenance;
     private boolean enMaintenance;
 
     public VehiculeLeger(String immatriculation, int kilometrage) {
@@ -38,7 +37,6 @@ public class VehiculeLeger extends Vehicule implements Assignable, Maintenable {
 
     @Override
     public void planifierMaintenance(String date) {
-        this.dateMaintenance = date;
         this.enMaintenance = true;
         setEtat("maintenance");
     }
