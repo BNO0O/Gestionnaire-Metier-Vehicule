@@ -19,19 +19,10 @@ public class FenetrePrincipale extends JFrame {
         setSize(1100, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        initialiserDonneesTest();
+        try {
+            gestionnaire.chargerCSV("resources/donnees.csv");
+        } catch (Exception ignored) {}
         initUI();
-    }
-
-    private void initialiserDonneesTest() {
-        gestionnaire.ajouterVehicule(new VehiculeLeger("AB-123-CD", 45000));
-        gestionnaire.ajouterVehicule(new VehiculeLourd("EF-456-GH", 80000, 12.5));
-        gestionnaire.ajouterVehicule(new VehiculeSpecial("IJ-789-KL", 55000, "Ambulance"));
-        gestionnaire.ajouterChauffeur(new Chauffeur("Dupont", "Jean", "B-12345"));
-        gestionnaire.ajouterChauffeur(new Chauffeur("Martin", "Marie", "C-67890"));
-        gestionnaire.ajouterMission(new MissionCourte("M001", "Livraison Paris", "2024-01-15", 3));
-        gestionnaire.ajouterMission(
-                new MissionLongue("M002", "Transport Lyon-Marseille", "2024-01-16", "Lyon -> Marseille"));
     }
 
     private void initUI() {
@@ -462,22 +453,40 @@ public class FenetrePrincipale extends JFrame {
         return panel;
     }
 
-    // ===== PANEL STATISTIQUES =====
     private JPanel creerPanelStats() {
-        JPanel panel = new JPanel(new GridLayout(4, 1, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        panel.add(new JLabel("Vehicules disponibles : " + gestionnaire.getNbVehiculesDisponibles(), JLabel.CENTER));
-        panel.add(new JLabel("Kilometrage moyen : " + String.format("%.0f km", gestionnaire.getKilometragesMoyen()),
-                JLabel.CENTER));
-        panel.add(new JLabel("Missions en cours : " + gestionnaire.getNbMissionsEnCours(), JLabel.CENTER));
+        JPanel contenu = new JPanel(new GridLayout(5, 1, 10, 10));
 
-        StringBuilder sb = new StringBuilder("<html>Vehicules par etat :<br>");
-        gestionnaire.getVehiculesParEtat().forEach(
-                (etat, nb) -> sb.append("&nbsp;&nbsp;- ").append(etat).append(" : ").append(nb).append("<br>"));
-        sb.append("</html>");
-        panel.add(new JLabel(sb.toString(), JLabel.CENTER));
+        JLabel lblDispo = new JLabel("", JLabel.CENTER);
+        JLabel lblKm = new JLabel("", JLabel.CENTER);
+        JLabel lblMissions = new JLabel("", JLabel.CENTER);
+        JLabel lblParEtat = new JLabel("", JLabel.CENTER);
 
+        JButton btnActualiser = new JButton("Actualiser les statistiques");
+        btnActualiser.addActionListener(e -> {
+            lblDispo.setText("Vehicules disponibles : " + gestionnaire.getNbVehiculesDisponibles());
+            lblKm.setText("Kilometrage moyen : " + String.format("%.0f km", gestionnaire.getKilometragesMoyen()));
+            lblMissions.setText("Missions en cours : " + gestionnaire.getNbMissionsEnCours());
+
+            StringBuilder sb = new StringBuilder("<html>Vehicules par etat : ");
+            gestionnaire.getVehiculesParEtat().forEach((etat, nb) -> sb.append("&nbsp;&nbsp;- ").append(etat)
+                    .append(" : ").append(nb).append("&nbsp;&nbsp;"));
+            sb.append("</html>");
+            lblParEtat.setText(sb.toString());
+        });
+
+        // Charger les stats au démarrage
+        btnActualiser.doClick();
+
+        contenu.add(lblDispo);
+        contenu.add(lblKm);
+        contenu.add(lblMissions);
+        contenu.add(lblParEtat);
+        contenu.add(btnActualiser);
+
+        panel.add(contenu, BorderLayout.CENTER);
         return panel;
     }
 

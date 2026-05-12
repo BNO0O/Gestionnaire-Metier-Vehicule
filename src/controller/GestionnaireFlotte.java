@@ -140,22 +140,90 @@ public class GestionnaireFlotte {
     // ===== PERSISTANCE CSV =====
     public void sauvegarderCSV(String chemin) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(chemin))) {
-            pw.println("immatriculation,type,etat,kilometrage");
-            registreVehicules.getAll().forEach(v -> pw.println(
-                    v.getImmatriculation() + "," + v.getType() + "," + v.getEtat() + "," + v.getKilometrage()));
+            pw.println("[vehicules]");
+            pw.println("immatriculation,type,etat,kilometrage,extra");
+            for (Vehicule v : registreVehicules.getAll()) {
+                String extra = "";
+                if (v instanceof VehiculeLourd) extra = String.valueOf(((VehiculeLourd) v).getCapaciteTonnage());
+                else if (v instanceof VehiculeSpecial) extra = ((VehiculeSpecial) v).getTypeUrgence();
+                pw.println(v.getImmatriculation() + "," + v.getType() + "," + v.getEtat() + "," + v.getKilometrage() + "," + extra);
+            }
+
+            pw.println("[chauffeurs]");
+            pw.println("nom,prenom,permis,disponible");
+            for (Chauffeur c : chauffeurs) {
+                pw.println(c.getNom() + "," + c.getPrenom() + "," + c.getNumeroPerm() + "," + c.isDisponible());
+            }
+
+            pw.println("[missions]");
+            pw.println("id,type,description,date,statut,extra");
+            for (Mission m : missions) {
+                String extra = "";
+                if (m instanceof MissionCourte) extra = String.valueOf(((MissionCourte) m).getDuree());
+                else if (m instanceof MissionLongue) extra = ((MissionLongue) m).getItineraire();
+                pw.println(m.getId() + "," + m.getType() + "," + m.getDescription() + "," + m.getDate() + "," + m.getStatut() + "," + extra);
+            }
         }
     }
 
     public void chargerCSV(String chemin) throws IOException {
+        registreVehicules = new Registre<>();
+        fileUrgences.clear();
+        chauffeurs.clear();
+        missions.clear();
+        agendaMissions.clear();
+
         try (BufferedReader br = new BufferedReader(new FileReader(chemin))) {
-            br.readLine(); // skip header
+            String section = "";
             String ligne;
             while ((ligne = br.readLine()) != null) {
-                String[] parts = ligne.split(",");
-                if (parts.length >= 4) {
-                    VehiculeLeger v = new VehiculeLeger(parts[0], Integer.parseInt(parts[3]));
-                    v.setEtat(parts[2]);
-                    registreVehicules.ajouter(v);
+                ligne = ligne.trim();
+                if (ligne.startsWith("[")) {
+                    section = ligne;
+                    br.readLine(); // skip header
+                    continue;
+                }
+                if (ligne.isEmpty()) continue;
+                String[] p = ligne.split(",", -1);
+                switch (section) {
+                    case "[vehicules]":
+                        if (p.length >= 4) {
+                            Vehicule v;
+                            String type = p[1].trim();
+                            String extra = p.length >= 5 ? p[4].trim() : "";
+                            if (type.equalsIgnoreCase("Lourd")) {
+                                double tonnage = extra.isEmpty() ? 10.0 : Double.parseDouble(extra);
+                                v = new VehiculeLourd(p[0], Integer.parseInt(p[3]), tonnage);
+                            } else if (type.equalsIgnoreCase("Spécial") || type.equalsIgnoreCase("Special")) {
+                                v = new VehiculeSpecial(p[0], Integer.parseInt(p[3]), extra.isEmpty() ? "Urgence" : extra);
+                            } else {
+                                v = new VehiculeLeger(p[0], Integer.parseInt(p[3]));
+                            }
+                            v.setEtat(p[2]);
+                            ajouterVehicule(v);
+                        }
+                        break;
+                    case "[chauffeurs]":
+                        if (p.length >= 4) {
+                            Chauffeur c = new Chauffeur(p[0], p[1], p[2]);
+                            c.setDisponible(Boolean.parseBoolean(p[3]));
+                            chauffeurs.add(c);
+                        }
+                        break;
+                    case "[missions]":
+                        if (p.length >= 5) {
+                            String extra = p.length >= 6 ? p[5].trim() : "";
+                            Mission m;
+                            if (p[1].trim().equalsIgnoreCase("Mission courte")) {
+                                int duree = extra.isEmpty() ? 1 : Integer.parseInt(extra);
+                                m = new MissionCourte(p[0], p[2], p[3], duree);
+                            } else {
+                                m = new MissionLongue(p[0], p[2], p[3], extra.isEmpty() ? "A definir" : extra);
+                            }
+                            m.setStatut(p[4]);
+                            ajouterMission(m);
+                        }
+                        break;
                 }
             }
         }
