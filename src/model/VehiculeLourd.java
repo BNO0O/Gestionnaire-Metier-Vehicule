@@ -3,12 +3,10 @@ package model;
 public class VehiculeLourd extends Vehicule implements Assignable {
     private double capaciteTonnage;
     private Chauffeur chauffeur;
-    private boolean enMaintenance;
 
     public VehiculeLourd(String immatriculation, int kilometrage, double capaciteTonnage) {
         super(immatriculation, "Lourd", kilometrage);
         this.capaciteTonnage = capaciteTonnage;
-        this.enMaintenance = false;
     }
 
     @Override
@@ -35,20 +33,6 @@ public class VehiculeLourd extends Vehicule implements Assignable {
     @Override
     public boolean estDisponible() {
         return getEtat().equals("disponible");
-    }
-
-    public void planifierMaintenance(String date) {
-        this.enMaintenance = true;
-        setEtat("maintenance");
-    }
-
-    public void signalerIncident(String description) {
-        System.out.println("Incident sur " + getImmatriculation() + " : " + description);
-        setEtat("incident");
-    }
-
-    public boolean necessiteMaintenance() {
-        return enMaintenance || getKilometrage() > 80000;
     }
 
     public double getCapaciteTonnage() {

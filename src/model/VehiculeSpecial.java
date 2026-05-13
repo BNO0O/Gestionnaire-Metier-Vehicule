@@ -3,12 +3,10 @@ package model;
 public class VehiculeSpecial extends Vehicule implements Assignable {
     private String typeUrgence;
     private Chauffeur chauffeur;
-    private boolean enMaintenance;
 
     public VehiculeSpecial(String immatriculation, int kilometrage, String typeUrgence) {
         super(immatriculation, "Spécial", kilometrage);
         this.typeUrgence = typeUrgence;
-        this.enMaintenance = false;
     }
 
     @Override
@@ -35,20 +33,6 @@ public class VehiculeSpecial extends Vehicule implements Assignable {
     @Override
     public boolean estDisponible() {
         return getEtat().equals("disponible");
-    }
-
-    public void planifierMaintenance(String date) {
-        this.enMaintenance = true;
-        setEtat("maintenance");
-    }
-
-    public void signalerIncident(String description) {
-        System.out.println("Incident urgent sur " + getImmatriculation() + " : " + description);
-        setEtat("incident");
-    }
-
-    public boolean necessiteMaintenance() {
-        return enMaintenance || getKilometrage() > 50000;
     }
 
     public String getTypeUrgence() {
