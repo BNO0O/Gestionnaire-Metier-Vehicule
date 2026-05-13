@@ -21,7 +21,8 @@ public class FenetrePrincipale extends JFrame {
         setLocationRelativeTo(null);
         try {
             gestionnaire.chargerCSV("resources/donnees.csv");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         initUI();
     }
 
@@ -373,7 +374,7 @@ public class FenetrePrincipale extends JFrame {
     // ===== PANEL MISSIONS =====
     private JPanel creerPanelMissions() {
         JPanel panel = new JPanel(new BorderLayout());
-        String[] colonnes = { "ID", "Type", "Description", "Statut", "Date" };
+        String[] colonnes = { "ID", "Type", "Description", "Statut", "Date", "Position" };
         DefaultTableModel model = new DefaultTableModel(colonnes, 0) {
             public boolean isCellEditable(int r, int c) {
                 return false;
@@ -383,8 +384,12 @@ public class FenetrePrincipale extends JFrame {
         table.setRowHeight(25);
 
         for (Mission m : gestionnaire.getTousMissions()) {
+            String position = "";
+            if (m instanceof Trackable) {
+                position = ((Trackable) m).getPosition();
+            }
             model.addRow(new Object[] {
-                    m.getId(), m.getType(), m.getDescription(), m.getStatut(), m.getDate()
+                    m.getId(), m.getType(), m.getDescription(), m.getStatut(), m.getDate(), position
             });
         }
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -430,6 +435,27 @@ public class FenetrePrincipale extends JFrame {
             }
         });
 
+        JButton btnModifierPosition = new JButton("Modifier position");
+        btnModifierPosition.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selectionnez une mission !");
+                return;
+            }
+            Mission m = gestionnaire.getTousMissions().get(row);
+            if (!(m instanceof Trackable)) {
+                JOptionPane.showMessageDialog(this, "La mission selectionnee n'est pas traquable !", "Info",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            Trackable t = (Trackable) m;
+            String nouvellePosition = JOptionPane.showInputDialog(this, "Nouvelle position :", t.getPosition());
+            if (nouvellePosition != null) {
+                t.mettreAJourPosition(nouvellePosition);
+                model.setValueAt(t.getPosition(), row, 5);
+            }
+        });
+
         JButton btnSupprimer = new JButton("Supprimer");
         btnSupprimer.addActionListener(e -> {
             int row = table.getSelectedRow();
@@ -447,6 +473,7 @@ public class FenetrePrincipale extends JFrame {
 
         boutons.add(btnAjouter);
         boutons.add(btnModifierStatut);
+        boutons.add(btnModifierPosition);
         boutons.add(btnSupprimer);
         panel.add(boutons, BorderLayout.SOUTH);
 
